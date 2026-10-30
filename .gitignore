@@ -1,0 +1,30 @@
+
+# Dependencies
+node_modules/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Logs
+*.log
+
+# Private keys
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local test credentials
+*cookies.txt
+*cookie-jar*
+
+# Operating system
+.DS_Store
+Thumbs.db
