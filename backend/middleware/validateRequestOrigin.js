@@ -6,19 +6,24 @@ export function validateRequestOrigin(req, res, next) {
     return next();
   }
 
+  const isProduction = process.env.NODE_ENV === "production";
 
+  const allowedOrigin = isProduction
+    ? process.env.CLIENT_URL
+    : process.env.CLIENT_URL || "http://localhost:5173";
 
+  let expectedOrigin;
 
   try {
+    if (!allowedOrigin) {
+      return res.status(500).json({
+        success: false,
+        message: "Frontend origin is not configured",
+      });
+    }
 
-if (!allowedOrigin) {
-  return res.status(500).json({
-    success: false,
-    message: "Frontend origin is not configured",
-  });
-}
+    expectedOrigin = new URL(allowedOrigin).origin;
 
-expectedOrigin = new URL(allowedOrigin).origin;
 
   } catch {
     return res.status(500).json({
