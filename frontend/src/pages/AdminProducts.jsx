@@ -19,7 +19,7 @@ export default function AdminProducts() {
   async function loadProducts() {
     try {
       const response = await fetch(
-        "http://localhost:5000/api/products",
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/products`,
         {
           method: "GET",
           signal: controller.signal,
