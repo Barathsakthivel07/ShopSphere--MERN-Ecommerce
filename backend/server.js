@@ -10,16 +10,53 @@ import orderRoutes from "./routes/orderRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import adminProductRoutes from "./routes/adminProductRoutes.js";
 
+import { validateRequestOrigin } from "./middleware/validateRequestOrigin.js";
+
+
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const isProduction = process.env.NODE_ENV === "production";
+
+const allowedClientUrl = isProduction
+  ? process.env.CLIENT_URL
+  : process.env.CLIENT_URL || "http://localhost:5173";
+
+if (!allowedClientUrl) {
+  throw new Error(
+    "CLIENT_URL must be configured in production"
+  );
+}
+
+let allowedClientOrigin;
+
+try {
+  const parsedUrl = new URL(allowedClientUrl);
+
+  if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+    throw new Error("Unsupported frontend URL protocol");
+  }
+
+  if (isProduction && parsedUrl.protocol !== "https:") {
+    throw new Error("Production CLIENT_URL must use HTTPS");
+  }
+
+  allowedClientOrigin = parsedUrl.origin;
+} catch {
+  throw new Error(
+    "CLIENT_URL must be a valid frontend HTTP(S) origin"
+  );
+}
+
+
+
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: allowedClientOrigin,
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -27,9 +64,16 @@ app.use(
 );
 
 
+
+
 app.use(express.json());
 app.use(cookieParser());
+
+// Validate the origin of state-changing requests
+app.use(validateRequestOrigin);
+
 // ShopSphere product API
+
 app.use("/api/products", productRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/orders", orderRoutes);
